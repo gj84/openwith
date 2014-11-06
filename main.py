@@ -40,6 +40,7 @@ from PyQt4.QtGui import QAction, QIcon, QMenu
 
 from ninja_ide.core import plugin
 
+import usersettings
 
 ###############################################################################
 
@@ -68,17 +69,32 @@ class Main(plugin.Plugin):
     def build_submenu(self):
         ''' build sub menu on the fly based on file path '''
         self.menu.clear()
+
         if self.ex_locator.get_current_project_item().isFolder is not True:
             filenam = self.ex_locator.get_current_project_item().get_full_path()
             entry = xdg_query('default', guess_type(filenam, strict=False)[0])
             if entry:
                 app = entry.replace('.desktop', '')
-                self.menu.addActions([
-                    QAction(QIcon.fromTheme(app), app, self,
-                            triggered=lambda: Popen([app, filenam])),
-                    QAction(QIcon.fromTheme('folder-open'), 'File Manager',
-                            self, triggered=lambda: Popen(['xdg-open',
-                                                    path.dirname(filenam)]))])
+                actions = [
+                QAction(QIcon.fromTheme(app), app, self,
+                    triggered=lambda: Popen([app, filenam])),
+                QAction(QIcon.fromTheme('folder-open'), 'File Manager',
+                    self, triggered=lambda: Popen(['xdg-open', path.dirname(filenam)]))]
+
+                    #QAction(QIcon.fromTheme('Sublime Text 2'), 'Sublime',
+                    #    self, triggered=lambda: Popen(['sublime-text', filenam])),
+                    #QAction(QIcon.fromTheme('Sqliteman'), 'Sqliteman',
+                    #    self, triggered=lambda: Popen(['sqliteman', filenam])),
+                    #QAction(QIcon.fromTheme('Google Chrome'), 'Google Chrome',
+                    #    self, triggered=lambda: Popen(['google-chrome', filenam]))
+                    
+                for key in usersettings.commands.keys():
+                    action = QAction(QIcon.fromTheme(key), key,
+                        self, triggered=lambda: Popen([usersettings.commands[key], filenam]))
+                    actions.append(action)
+                
+                self.menu.addActions(actions)
+                    
                 self.menu.show()
 
 
